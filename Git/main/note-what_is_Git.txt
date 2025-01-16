@@ -1,0 +1,193 @@
+!1  版本控制
+    #1  本地版本控制
+        RCS
+    #2  集中版本控制
+        SVN
+    #3  分布式版本控制
+        Git(大文件 -> git-lfs工具)
+!2  项目初始化
+    #1  创建文件夹
+        mkdir NAME
+    #2  进入文件夹
+        cd NAME
+    #3  Git初始化
+        git init
+        %1  默认master
+        %2  --initial-branch -> 初始化的分支
+        %3  --bare 创建一个裸仓库(纯Git目录，没有工作目录)
+        %4  --template 可以通过模板来创建预先构建好的自定义 git 目录
+          初始化后，在当前目录下会出现一个名为 .git 的目录
+        所有 Git 需要的数据和资源都存放在这个目录中。
+!3  tree .git
+    #1  HEAD
+        一个特殊的引用文件，用于指示当前所在分支或提交
+          它存储着当前working directory所处的某次commit，打开文件内容为
+        ref: refs/heads/master
+    #2  config
+        %1  Git 仓库的配置文件，用于存储仓库级别的配置选项
+            Git 版本控制系统中存储项目 本地配置信息 的文件。
+            它包含了项目的仓库配置、别名设置、钩子脚本、远程仓库等重要信息。
+            文件存储在每个 Git 仓库中，并且会被版本控制跟踪。
+        %2  不同级别Git配置
+            低级别回覆盖高级别
+            &1  --global
+                ~/.gitconfig
+            &2  --system
+                /etc/gitconfig
+            &3  --local
+                .git/config
+    #3  hooks
+        存储了 Git 钩子脚本的模板文件
+          Git 钩子是一些可执行的脚本，它们在特定的 Git 操作
+        (如提交、合并、推送等)前后运行，可以用于自定义和控制 Git 操作的行为。
+          Git 钩子脚本在 .git 文件夹中存储的是模板文件
+        需要将其重命名为去掉 .sample 后缀，并赋予可执行权限，才能生效。
+        每个 Git 仓库的钩子脚本都是 独立 的，不会被版本控制。
+    #4  info
+        存储了一些额外的 Git 配置文件
+    #5  logs 
+        用于存储 Git 仓库的引用日志信息
+          这些日志文件记录了引用的变动历史，包括引用的新增、删除、移动等操作。
+        它们可以用于查看仓库中引用的 修改历史 ，以及恢复到之前的引用状态。
+    #6  objects
+          Git 版本控制系统中一个非常重要的目录，
+        用于存储 Git 仓库中的所有对象（objects）。
+        objects 目录中的内容是 Git 的内部结构，通常不需要直接操作这些文件
+    #7  refs
+        存储指向提交对象的引用（reference）
+    #8  COMMIT_EDITMSG
+        用于存储最近一次 Git 提交时的提交消息
+    #9  description
+        一个纯文本文件，用于提供关于 Git 仓库的简要描述信息
+    #10  index
+        一个二进制文件，也成为暂存区（staging area）或者索引（index）
+        index 文件记录了当前工作目录中被修改的文件的快照信息
+!4  常见Git配置
+    #1  用户名配置
+        git config --global user.NAME XXXXX
+        git config --global user.email XXXXXX
+    #2  Instead of 配置
+        git config --global url.XXX.insteadOf XXX
+    #3  Git 命令别名配置
+        git config --global alias.XX"xxxxx" -> XX == xxxxx
+!5  Git Remote
+    #1  查看 Remote
+        git remote -v
+    #2  添加 Remote
+        git remote add origin_ssh(NAME) (ip)
+        git remote add origin_http(NAME) (ip)
+
+        例如  git remote add origin_http https://github.com/tailuo022/TEST.git
+              git remote -v
+              origin_http     https://github.com/tailuo022/TEST.git (fetch)
+              origin_http     https://github.com/tailuo022/TEST.git (push)
+
+              cat .git/config
+              [core]
+                        repositoryformatversion = 0
+                        filemode = false
+                        bare = false
+                        logallrefupdates = true
+                        symlinks = false
+                        ignorecase = true
+              [remote "origin_http"]
+                        url = https://github.com/tailuo022/TEST.git
+                        fetch = +refs/heads/*:refs/remotes/origin_http/*
+    #3  同一个 Origin 设置不同的 Push 和 Fentch URL
+        git remote set-url --add --push NAME
+        例如  git remote add origin git@github.com:git/git.git -> 创建一个git源
+              git remote set-url --add --push origin git@github.com:test_my_hub/git.git
+
+              git remote -v
+              origin  git@github.com:git/git.git (fetch)
+              origin  git@github.com:git/git.git (push)
+              rigin  git@github.com:test_my_hub/git.git (push)
+
+              vim .git/config -> 进入文件，删除信息
+              git remote -v
+              origin  git@github.com:git/git.git (fetch)
+              origin  git@github.com:test_my_hub/git.git (push)
+    #4  HTTP Remate -> 连接远端仓库不推荐
+        URL: https://github.com/tailuo022/TEST.git
+        免密配置
+            内存：git config --global credential.helper
+            硬盘：git config --global credential.helper
+                      不指定目录默认为~/.git-credentials
+    #5  SSH Remote  -> 连接远端仓库推荐
+        URL：git@github.com:git/git.git
+        免密配置
+            SSH通过公私钥的机制，将生成公钥存放在服务端，从而实现免密访问
+            key：dsa、rsa、ecdsa、ed25519
+            默认：rsa，不推荐dsa、rsa，优先推荐 ed25519
+            例如  ssh-keygen -t ed25519 -C "3116026576@qq.com"
+                  //ssh-keygen是用于生成 SSH 密钥的工具
+                  //-t ed25519指定了要生成的密钥类型为ed25519
+                  //-C "3116026576@qq.com"是对密钥的注释，通常用于标识密钥的用途或所有者
+!6  Git Add -> 放到暂存区
+    Windows -> create -> enter -> vim 
+    git status(查看当前状态)
+    git add .
+    cd..
+    git status
+    git cat-file -p id -> 看内容
+
+    git cat-file -p 557db03de997c86a4a028e1ebd3a1ceb225be238
+
+!7  Git Commit
+    git commit -m "add readme"
+!8  Objects
+      commit / tree / blob 在 git 里面统一称为 Object
+    除此之外还有个 tag 里面的 object
+    Blob 存储文件内容
+    Tree 存储文件目录信息
+    Commit 存储提交信息，一个 Commit 可以对应唯一版本的代码
+    每个 Commit 都有存储对应的 Tree ID
+    通过 Tree 获取对应的目录树信息
+    从 tree 中获得 blob id 通过 Blob ID 获取内容
+    悬空的 Object：没有 ref 指向的 object
+    git fsck --lost-found
+!9  refs
+    新建一个分支 git checkout -b test
+    refs 内容就是对应的 Commit ID 
+    因此把 refs 当作一个指针，指向对应 Commit 来表示当前 Ref 对应的版本
+    refs/heads -> 分支 -> 新建一个分支 git checkout -b -> 开发阶段
+    refs/tag 稳定版本 -> git tag 
+!10 Annotation Tag 附注标签
+    一种特殊的 Tag ，可以给 Tag 提供一些额外的信息
+    创建 git tag -a
+!11 追溯历史版本
+    #1  获取当前版本代码
+        通过 Ref 指向的 Commit 可以获取唯一的代码版本
+    #2  获取历史版本代码
+        Commit 里面存有 parent commit 字段，通过 commit 的串联获取历史版本代码
+!12 修改历史版本
+    #1  commit --amend
+        修改最近一次的 commit 信息，修改之后 commit id 会改变
+    #2  rebase
+        通过 git rebase -i HEAD~3 可以实现对最近的三个 commit 修改
+        %1  合并 commit
+        %2  修改具体的 commit message
+        %3  删除某个 commit
+    #3  filter --branch
+        指定删除所有提交中的某个文件或者全局修改邮箱地址
+!13 Git GC 
+    #1  GC 
+        删除不需要的 object
+        对 object 进行一些打包压缩来减少仓库的体积
+    #2  Reflog
+        用于记录操作日志，防止误操作后数据丢失
+        通过 reflog 来找到丢失的数据，手动酱日志设置为过期
+    #3  指定时间
+        git gc prune=now 指定的是修建多久之前的对象
+        默认是两周前
+!14 Git Clone Pull fetch
+!15 Git Pull
+    #1  常见命令
+        git push NAME master
+    #2  
+
+
+常见问题 
+    为什么配置了 Git 没办法拉去代码
+    1 免密认证没有配
+    2 Instead Of 配置没有配，配的是 SSH 免密配置，用的还是 HTTP 协议访问
