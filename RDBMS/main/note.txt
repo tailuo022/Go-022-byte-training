@@ -51,4 +51,3 @@ RDBMS - 关系型数据库
     #2  Isolation + 锁
     #3  Isolation + MVCC
     #4  Durability + Redo Log
-
